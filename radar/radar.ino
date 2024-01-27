@@ -8,6 +8,8 @@ int TRIG = 9;
 int ECHO = 8;
 int BUZZER = 12;
 const int DELAY = 25;
+const int ALARM_DISTANCE = 10;
+
 void setup()
 {
     // put your setup code here, to run once:
@@ -20,6 +22,7 @@ void setup()
     servo1.write(0);
     digitalWrite(LED, LOW);
     digitalWrite(BUZZER, LOW);
+    Serial.println("Radar Start");
 }
 
 void loop()
@@ -28,34 +31,33 @@ void loop()
     for (int i = 0; i <= 180; i++)
     {
         servo1.write(i);
-        controlLED();
+        controlLEDBuzzer(i);
         delay(DELAY);
     }
     for (int i = 180; i >= 0; i--)
     {
         servo1.write(i);
-        controlLED();
+        controlLEDBuzzer(i);
         delay(DELAY);
     }
 }
 
-void controlLED()
+void controlLEDBuzzer(int pos)
 {
     int distance = measureDistance();
-    if (distance < 60)
+    if (distance < ALARM_DISTANCE)
     {
         digitalWrite(LED, HIGH);
         digitalWrite(BUZZER, HIGH);
-        Serial.print("Object detected at: ");
-        Serial.print(distance);
-        Serial.print(" cm");
-        Serial.println();
     }
     else
     {
         digitalWrite(LED, LOW);
         digitalWrite(BUZZER, LOW);
     }
+    Serial.print(pos);
+    Serial.print(",");
+    Serial.println(distance);
 }
 
 int measureDistance()
