@@ -1,3 +1,8 @@
+/*
+    Author: Kevin Peter
+    Circuit Diagram: https://wokwi.com/projects/388105596571181057
+*/
+
 #include <Servo.h>
 
 Servo servo1;
