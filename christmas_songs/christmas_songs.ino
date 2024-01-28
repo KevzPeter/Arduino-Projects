@@ -5,12 +5,14 @@
 
   Modified for Christmas by Joshi, on Dec 17th, 2017.
 
-  Adapted by Kevin Peter
+  Adapted by Kevin Peter (github.com/KevzPeter)
 */
 
 #include "pitches.h"
 
-#define melodyPin 11
+#define BUZZER 11
+#define GREEN_LED 8
+#define RED_LED 9
 
 // Jingle Bells
 
@@ -58,130 +60,66 @@ int wish_tempo[] = {
     4, 4, 4,
     2};
 
-// Santa Claus is coming to town
-
-int santa_melody[] = {
-    NOTE_G4,
-    NOTE_E4, NOTE_F4, NOTE_G4, NOTE_G4, NOTE_G4,
-    NOTE_A4, NOTE_B4, NOTE_C5, NOTE_C5, NOTE_C5,
-    NOTE_E4, NOTE_F4, NOTE_G4, NOTE_G4, NOTE_G4,
-    NOTE_A4, NOTE_G4, NOTE_F4, NOTE_F4,
-    NOTE_E4, NOTE_G4, NOTE_C4, NOTE_E4,
-    NOTE_D4, NOTE_F4, NOTE_B3,
-    NOTE_C4};
-
-int santa_tempo[] = {
-    8,
-    8, 8, 4, 4, 4,
-    8, 8, 4, 4, 4,
-    8, 8, 4, 4, 4,
-    8, 8, 4, 2,
-    4, 4, 4, 4,
-    4, 2, 4,
-    1};
-
-int switchOne = 0;
-int switchTwo = 0;
-int switchThree = 0;
-
 void setup(void)
 {
-    pinMode(7, OUTPUT);  // LED 1
-    pinMode(8, OUTPUT);  // LED 2
-    pinMode(11, OUTPUT); // Buzzer
+    pinMode(GREEN_LED, OUTPUT);
+    pinMode(RED_LED, OUTPUT);
+    pinMode(BUZZER, OUTPUT);
 }
 
 void loop()
 {
+    // Input the song you wish to play !
     sing(1);
-    delay(1000);
-    sing(2);
-    delay(1000);
-    sing(3);
-    delay(1000);
 }
 
-int song = 0;
-
-void sing(int s)
+void sing(int song)
 {
-    // iterate over the notes of the melody:
-    song = s;
-    if (song == 3)
+    if (song == 2)
     {
         Serial.println(" 'We wish you a Merry Christmas'");
         int size = sizeof(wish_melody) / sizeof(int);
-        for (int thisNote = 0; thisNote < size; thisNote++)
-        {
-
-            // to calculate the note duration, take one second
-            // divided by the note type.
-            // e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-            int noteDuration = 1000 / wish_tempo[thisNote];
-
-            buzz(melodyPin, wish_melody[thisNote], noteDuration);
-
-            // to distinguish the notes, set a minimum time between them.
-            // the note's duration + 30% seems to work well:
-            int pauseBetweenNotes = noteDuration * 1.30;
-            delay(pauseBetweenNotes);
-
-            // stop the tone playing:
-            buzz(melodyPin, 0, noteDuration);
-        }
-    }
-    else if (song == 2)
-    {
-        Serial.println(" 'Santa Claus is coming to town'");
-        int size = sizeof(santa_melody) / sizeof(int);
-        for (int thisNote = 0; thisNote < size; thisNote++)
-        {
-
-            // to calculate the note duration, take one second
-            // divided by the note type.
-            // e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-            int noteDuration = 900 / santa_tempo[thisNote];
-
-            buzz(melodyPin, santa_melody[thisNote], noteDuration);
-
-            // to distinguish the notes, set a minimum time between them.
-            // the note's duration + 30% seems to work well:
-            int pauseBetweenNotes = noteDuration * 1.30;
-            delay(pauseBetweenNotes);
-
-            // stop the tone playing:
-            buzz(melodyPin, 0, noteDuration);
-        }
+        playNotes(wish_melody, wish_tempo, size);
     }
     else
     {
 
         Serial.println(" 'Jingle Bells'");
         int size = sizeof(melody) / sizeof(int);
-        for (int thisNote = 0; thisNote < size; thisNote++)
+        playNotes(melody, tempo, size);
+    }
+}
+
+void playNotes(int melody[], int tempo[], int size)
+{
+    int prevNote = NULL;
+    int currentLED = RED_LED;
+    for (int thisNote = 0; thisNote < size; thisNote++)
+    {
+        // to calculate the note duration, take one second
+        // divided by the note type.
+        // e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
+        int noteDuration = 1000 / tempo[thisNote];
+        if (prevNote != NULL && prevNote != melody[thisNote])
         {
-
-            // to calculate the note duration, take one second
-            // divided by the note type.
-            // e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-            int noteDuration = 1000 / tempo[thisNote];
-
-            buzz(melodyPin, melody[thisNote], noteDuration);
-
-            // to distinguish the notes, set a minimum time between them.
-            // the note's duration + 30% seems to work well:
-            int pauseBetweenNotes = noteDuration * 1.30;
-            delay(pauseBetweenNotes);
-
-            // stop the tone playing:
-            buzz(melodyPin, 0, noteDuration);
+            currentLED = currentLED == RED_LED ? GREEN_LED : RED_LED;
         }
+        digitalWrite(currentLED, HIGH);
+        buzz(BUZZER, melody[thisNote], noteDuration);
+        digitalWrite(currentLED, LOW);
+        // to distinguish the notes, set a minimum time between them.
+        // the note's duration + 30% seems to work well:
+        int pauseBetweenNotes = noteDuration * 1.30;
+        delay(pauseBetweenNotes);
+
+        // stop the tone playing:
+        buzz(BUZZER, 0, noteDuration);
+        prevNote = melody[thisNote];
     }
 }
 
 void buzz(int targetPin, long frequency, long length)
 {
-    digitalWrite(13, HIGH);
     long delayValue = 1000000 / frequency / 2; // calculate the delay value between transitions
     //// 1 second's worth of microseconds, divided by the frequency, then split in half since
     //// there are two phases to each cycle
@@ -191,13 +129,8 @@ void buzz(int targetPin, long frequency, long length)
     for (long i = 0; i < numCycles; i++)
     {                                  // for the calculated length of time...
         digitalWrite(targetPin, HIGH); // write the buzzer pin high to push out the diaphram
-        digitalWrite(7, HIGH);
         delayMicroseconds(delayValue); // wait for the calculated delay value
-        digitalWrite(7, LOW);
-        digitalWrite(targetPin, LOW); // write the buzzer pin low to pull back the diaphram
-        digitalWrite(8, HIGH);
+        digitalWrite(targetPin, LOW);  // write the buzzer pin low to pull back the diaphram
         delayMicroseconds(delayValue); // wait again or the calculated delay value
-        digitalWrite(8, LOW);
     }
-    digitalWrite(13, LOW);
 }
