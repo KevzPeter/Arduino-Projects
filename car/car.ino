@@ -1,8 +1,7 @@
 #include <AFMotor.h>
-#include <NewPing.h>
 
-#define DISTANCE_SENSOR_ECHO A0
-#define DISTANCE_SENSOR_TRIG A1
+#define DISTANCE_SENSOR_ECHO A5
+#define DISTANCE_SENSOR_TRIG A4
 #define LED A2
 #define MAX_DISTANCE 20
 
@@ -10,8 +9,6 @@ AF_DCMotor frontRight(1); // M1
 AF_DCMotor frontLeft(2);  // M2
 AF_DCMotor rearLeft(3);   // M3
 AF_DCMotor rearRight(4);  // M4
-
-NewPing sonar(DISTANCE_SENSOR_TRIG, DISTANCE_SENSOR_ECHO, MAX_DISTANCE); // sensor function
 
 void setup()
 {
@@ -26,7 +23,7 @@ void setup()
     rearRight.setSpeed(50);
     rearRight.run(RELEASE);
     pinMode(LED, OUTPUT);
-    analogWrite(LED, 255);
+    digitalWrite(LED, LOW);
     pinMode(DISTANCE_SENSOR_ECHO, INPUT);
     pinMode(DISTANCE_SENSOR_TRIG, OUTPUT);
     Serial.println("Ready to roll!");
@@ -42,38 +39,39 @@ void loop()
         Serial.print(data);
         Serial.println();
     }
-    int distance = readPing();
+    int distance = measureDistance();
     if (distance >= MAX_DISTANCE)
     {
+        digitalWrite(LED, LOW);
         if (data == 'A')
         {
+            Serial.println("Moving Forward ");
             moveForward();
         }
         else if (data == 'B')
         {
+            Serial.println("Moving Backward");
             moveBackward();
         }
         else if (data == 'C')
         {
+            Serial.println("Turning Left");
             turnLeft();
         }
-        else
+        else if (data == 'D')
         {
+            Serial.println("Turning Right");
             turnRight();
         }
     }
     else
     {
+        Serial.println(distance);
+        Serial.println("Obstacle detected. Stopping car...");
+        digitalWrite(LED, HIGH);
         stopMoving();
     }
     delay(100);
-}
-
-int readPing()
-{
-    delay(70);
-    int cm = sonar.ping_cm();
-    return cm = cm == 250 ? 0 : cm;
 }
 
 void stopMoving()
@@ -136,4 +134,17 @@ void turnLeft()
     rearLeft.run(RELEASE);
     rearRight.run(RELEASE);
     stopMoving();
+}
+
+int measureDistance()
+{
+    digitalWrite(DISTANCE_SENSOR_TRIG, LOW);
+    delayMicroseconds(2);
+    digitalWrite(DISTANCE_SENSOR_TRIG, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(DISTANCE_SENSOR_TRIG, LOW);
+
+    float duration = pulseIn(DISTANCE_SENSOR_ECHO, HIGH);
+    float distance = (duration * .0343) / 2;
+    return floor(distance);
 }
