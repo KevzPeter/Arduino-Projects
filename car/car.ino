@@ -4,6 +4,7 @@
 #define DISTANCE_SENSOR_TRIG A4
 #define LED A2
 #define MAX_DISTANCE 20
+#define CAR_POWER 70 // 0-100
 
 AF_DCMotor frontRight(1); // M1
 AF_DCMotor frontLeft(2);  // M2
@@ -14,18 +15,16 @@ void setup()
 {
     // put your setup code here, to run once:
     Serial.begin(9600);
-    frontRight.setSpeed(50);
-    frontRight.run(FORWARD);
-    frontLeft.setSpeed(50);
-    frontLeft.run(FORWARD);
-    rearLeft.setSpeed(50);
-    rearLeft.run(RELEASE);
-    rearRight.setSpeed(50);
-    rearRight.run(RELEASE);
+
+    int carSpeed = convertPowerToSpeed(CAR_POWER);
+    setCarSpeed(carSpeed);
+    stopMoving();
+
     pinMode(LED, OUTPUT);
     digitalWrite(LED, LOW);
     pinMode(DISTANCE_SENSOR_ECHO, INPUT);
     pinMode(DISTANCE_SENSOR_TRIG, OUTPUT);
+
     Serial.println("Ready to roll!");
 }
 
@@ -70,8 +69,28 @@ void loop()
         Serial.println("Obstacle detected. Stopping car...");
         digitalWrite(LED, HIGH);
         stopMoving();
+        while (measureDistance() < MAX_DISTANCE)
+        {
+            moveForward();
+            delay(500);
+        }
+        digitalWrite(LED, LOW);
+        stopMoving();
     }
-    delay(100);
+    delay(250);
+}
+
+int convertPowerToSpeed(int power)
+{
+    return map(power, 0, 100, 0, 255);
+}
+
+void setCarSpeed(int speed)
+{
+    frontRight.setSpeed(speed);
+    frontLeft.setSpeed(speed);
+    rearLeft.setSpeed(speed);
+    rearRight.setSpeed(speed);
 }
 
 void stopMoving()
@@ -100,7 +119,6 @@ void moveBackward()
 
 void turnRight()
 {
-    stopMoving();
     frontLeft.run(FORWARD);
     rearRight.run(FORWARD);
 
@@ -119,7 +137,6 @@ void turnRight()
 
 void turnLeft()
 {
-    stopMoving();
     rearLeft.run(FORWARD);
     frontRight.run(FORWARD);
 
