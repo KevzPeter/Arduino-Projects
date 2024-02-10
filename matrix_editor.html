@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LED Matrix Editor</title>
+    <style>
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(8, 50px);
+            grid-template-rows: repeat(8, 50px);
+            gap: 2px;
+        }
+
+        .cell {
+            background-color: black;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+        }
+
+        .cell.red {
+            background-color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grid-container" id="gridContainer">
+        <!-- Dynamically generate grid cells -->
+        <!-- The class "cell" represents a black cell -->
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <div class="cell" onclick="toggleCell(this)"></div>
+        <!-- Repeat this div for 64 times -->
+    </div>
+    <button onclick="convertTo2DArray()">Convert to 2D Array</button>
+    <br><br>
+    <textarea id="arrayOutput" rows="8" cols="20"></textarea>
+    <button onclick="copyArray()">Copy</button>
+
+    <script>
+        // Function to toggle cell color between black and red
+        function toggleCell(cell) {
+            cell.classList.toggle("red");
+        }
+
+        // Function to convert grid to a 2D array
+        function convertTo2DArray() {
+            const grid = document.getElementById('gridContainer');
+            const cells = grid.getElementsByClassName('cell');
+            let array = [];
+            let row = [];
+            for (let i = 0; i < cells.length; i++) {
+                if (i % 8 === 0 && i !== 0) {
+                    array.push(row);
+                    row = [];
+                }
+                row.push(cells[i].classList.contains('red') ? 1 : 0);
+            }
+            array.push(row); // Push the last row
+            const textArea = document.getElementById('arrayOutput');
+            textArea.value = JSON.stringify(array).replace(/\[/g, '{').replace(/\]/g, '}');
+        }
+
+        // Function to copy the content of the textarea
+        function copyArray() {
+            const textArea = document.getElementById('arrayOutput');
+            textArea.select();
+            document.execCommand('copy');
+            alert('Copied to clipboard!');
+        }
+    </script>
+</body>
+
+</html>
