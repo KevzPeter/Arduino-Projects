@@ -34,18 +34,25 @@ void loop()
         case 'A':
             Serial.println("Moving Forward ");
             moveForward();
+            break;
         case 'B':
             Serial.println("Moving Backward");
             moveBackward();
+            break;
         case 'C':
             Serial.println("Turning Left");
             turnLeft();
+            break;
         case 'D':
             Serial.println("Turning Right");
             turnRight();
-        default:
-            Serial.println("Stopping car");
+            break;
+        case 'E':
+            Serial.println("Stopping Car");
             stopMoving();
+            break;
+        default:
+            Serial.println("Invalid Input");
         }
     }
 
