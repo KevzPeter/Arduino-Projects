@@ -8,6 +8,8 @@ AF_DCMotor frontLeft(2);  // M2
 AF_DCMotor rearLeft(3);   // M3
 AF_DCMotor rearRight(4);  // M4
 int data = 0;
+boolean movingForwards = false;
+boolean carStopped = false;
 
 void setup()
 {
@@ -75,6 +77,7 @@ void setCarSpeed(int speed)
 
 void stopMoving()
 {
+    carStopped = true;
     frontRight.run(RELEASE);
     frontLeft.run(RELEASE);
     rearRight.run(RELEASE);
@@ -83,6 +86,8 @@ void stopMoving()
 
 void moveForward()
 {
+    carStopped = false;
+    movingForwards = true;
     frontRight.run(FORWARD);
     frontLeft.run(FORWARD);
     rearRight.run(FORWARD);
@@ -91,6 +96,8 @@ void moveForward()
 
 void moveBackward()
 {
+    carStopped = false;
+    movingForwards = false;
     frontRight.run(BACKWARD);
     frontLeft.run(BACKWARD);
     rearRight.run(BACKWARD);
@@ -101,17 +108,40 @@ void turnRight()
 {
     int boostedCarSpeed = convertPowerToSpeed(CAR_POWER + BOOST_POWER);
     setCarSpeed(boostedCarSpeed);
-
-    frontLeft.run(FORWARD);
-    rearLeft.run(FORWARD);
-    frontRight.run(BACKWARD);
-    rearRight.run(BACKWARD);
+    if (movingForwards)
+    {
+        frontLeft.run(FORWARD);
+        rearLeft.run(FORWARD);
+        frontRight.run(BACKWARD);
+        rearRight.run(BACKWARD);
+    }
+    else
+    {
+        frontLeft.run(BACKWARD);
+        rearLeft.run(BACKWARD);
+        frontRight.run(FORWARD);
+        rearRight.run(FORWARD);
+    }
 
     delay(750);
 
-    stopMoving();
     int carSpeed = convertPowerToSpeed(CAR_POWER);
     setCarSpeed(carSpeed);
+    if (!carStopped)
+    {
+        if (movingForwards)
+        {
+            moveForward();
+        }
+        else
+        {
+            moveBackward();
+        }
+    }
+    else
+    {
+        stopMoving();
+    }
 }
 
 void turnLeft()
@@ -119,14 +149,39 @@ void turnLeft()
     int boostedCarSpeed = convertPowerToSpeed(CAR_POWER + BOOST_POWER);
     setCarSpeed(boostedCarSpeed);
 
-    frontRight.run(FORWARD);
-    rearRight.run(FORWARD);
-    frontLeft.run(BACKWARD);
-    rearLeft.run(BACKWARD);
+    if (movingForwards)
+    {
+        frontRight.run(FORWARD);
+        rearRight.run(FORWARD);
+        frontLeft.run(BACKWARD);
+        rearLeft.run(BACKWARD);
+    }
+    else
+    {
+        frontRight.run(BACKWARD);
+        rearRight.run(BACKWARD);
+        frontLeft.run(FORWARD);
+        rearLeft.run(FORWARD);
+    }
 
     delay(750);
 
-    stopMoving();
     int carSpeed = convertPowerToSpeed(CAR_POWER);
     setCarSpeed(carSpeed);
+
+    if (!carStopped)
+    {
+        if (movingForwards)
+        {
+            moveForward();
+        }
+        else
+        {
+            moveBackward();
+        }
+    }
+    else
+    {
+        stopMoving();
+    }
 }

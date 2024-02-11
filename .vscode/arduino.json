@@ -1,5 +1,5 @@
 {
   "board": "arduino:avr:uno",
-  "sketch": "christmas_songs\\christmas_songs.ino",
+  "sketch": "rc_4wd\\rc_4wd.ino",
   "port": "COM4"
 }
