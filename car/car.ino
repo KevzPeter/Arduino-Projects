@@ -1,15 +1,20 @@
 #include <AFMotor.h>
 
-#define DISTANCE_SENSOR_ECHO A5
-#define DISTANCE_SENSOR_TRIG A4
+#define DISTANCE_SENSOR_ECHO A1
+#define DISTANCE_SENSOR_TRIG A0
 #define LED A2
 #define MAX_DISTANCE 20
-#define CAR_POWER 70 // 0-100
+#define CAR_POWER 40   // Set this to any value between 0 - 100
+#define BOOST_POWER 10 // Extra power while turning to increase turning angle
 
 AF_DCMotor frontRight(1); // M1
 AF_DCMotor frontLeft(2);  // M2
 AF_DCMotor rearLeft(3);   // M3
 AF_DCMotor rearRight(4);  // M4
+
+int data = 0;
+boolean movingForwards = false;
+boolean carStopped = false;
 
 void setup()
 {
@@ -30,37 +35,41 @@ void setup()
 
 void loop()
 {
-    int data = 0;
-    if (Serial.available())
-    {
-        data = Serial.read();
-        Serial.print("Data from Bluetooth device: ");
-        Serial.print(data);
-        Serial.println();
-    }
     int distance = measureDistance();
     if (distance >= MAX_DISTANCE)
     {
         digitalWrite(LED, LOW);
-        if (data == 'A')
+        if (Serial.available())
         {
-            Serial.println("Moving Forward ");
-            moveForward();
-        }
-        else if (data == 'B')
-        {
-            Serial.println("Moving Backward");
-            moveBackward();
-        }
-        else if (data == 'C')
-        {
-            Serial.println("Turning Left");
-            turnLeft();
-        }
-        else if (data == 'D')
-        {
-            Serial.println("Turning Right");
-            turnRight();
+            data = Serial.read();
+            Serial.print("Data from Bluetooth device: ");
+            Serial.print(data);
+            Serial.println();
+            switch (data)
+            {
+            case 'A':
+                Serial.println("Moving Forward ");
+                moveForward();
+                break;
+            case 'B':
+                Serial.println("Moving Backward");
+                moveBackward();
+                break;
+            case 'C':
+                Serial.println("Turning Left");
+                turnLeft();
+                break;
+            case 'D':
+                Serial.println("Turning Right");
+                turnRight();
+                break;
+            case 'E':
+                Serial.println("Stopping Car");
+                stopMoving();
+                break;
+            default:
+                Serial.println("Invalid Input");
+            }
         }
     }
     else
@@ -72,7 +81,7 @@ void loop()
         while (measureDistance() < MAX_DISTANCE)
         {
             moveForward();
-            delay(500);
+            delay(300);
         }
         digitalWrite(LED, LOW);
         stopMoving();
@@ -95,6 +104,7 @@ void setCarSpeed(int speed)
 
 void stopMoving()
 {
+    carStopped = true;
     frontRight.run(RELEASE);
     frontLeft.run(RELEASE);
     rearRight.run(RELEASE);
@@ -103,6 +113,8 @@ void stopMoving()
 
 void moveForward()
 {
+    carStopped = false;
+    movingForwards = true;
     frontRight.run(FORWARD);
     frontLeft.run(FORWARD);
     rearRight.run(FORWARD);
@@ -111,6 +123,8 @@ void moveForward()
 
 void moveBackward()
 {
+    carStopped = false;
+    movingForwards = false;
     frontRight.run(BACKWARD);
     frontLeft.run(BACKWARD);
     rearRight.run(BACKWARD);
@@ -119,38 +133,84 @@ void moveBackward()
 
 void turnRight()
 {
-    frontLeft.run(FORWARD);
-    rearRight.run(FORWARD);
+    int boostedCarSpeed = convertPowerToSpeed(CAR_POWER + BOOST_POWER);
+    setCarSpeed(boostedCarSpeed);
+    if (movingForwards)
+    {
+        frontLeft.run(FORWARD);
+        rearLeft.run(FORWARD);
+        frontRight.run(BACKWARD);
+        rearRight.run(BACKWARD);
+    }
+    else
+    {
+        frontLeft.run(BACKWARD);
+        rearLeft.run(BACKWARD);
+        frontRight.run(FORWARD);
+        rearRight.run(FORWARD);
+    }
 
-    rearLeft.run(RELEASE);
-    frontRight.run(RELEASE);
+    delay(200);
 
-    delay(500);
-
-    frontLeft.run(FORWARD);
-    frontRight.run(FORWARD);
-
-    rearLeft.run(RELEASE);
-    rearRight.run(RELEASE);
-    stopMoving();
+    int carSpeed = convertPowerToSpeed(CAR_POWER);
+    setCarSpeed(carSpeed);
+    if (!carStopped)
+    {
+        if (movingForwards)
+        {
+            moveForward();
+        }
+        else
+        {
+            moveBackward();
+        }
+    }
+    else
+    {
+        stopMoving();
+    }
 }
 
 void turnLeft()
 {
-    rearLeft.run(FORWARD);
-    frontRight.run(FORWARD);
+    int boostedCarSpeed = convertPowerToSpeed(CAR_POWER + BOOST_POWER);
+    setCarSpeed(boostedCarSpeed);
 
-    frontLeft.run(RELEASE);
-    rearRight.run(RELEASE);
+    if (movingForwards)
+    {
+        frontRight.run(FORWARD);
+        rearRight.run(FORWARD);
+        frontLeft.run(BACKWARD);
+        rearLeft.run(BACKWARD);
+    }
+    else
+    {
+        frontRight.run(BACKWARD);
+        rearRight.run(BACKWARD);
+        frontLeft.run(FORWARD);
+        rearLeft.run(FORWARD);
+    }
 
-    delay(500);
+    delay(200);
 
-    frontLeft.run(FORWARD);
-    frontRight.run(FORWARD);
+    int carSpeed = convertPowerToSpeed(CAR_POWER);
+    setCarSpeed(carSpeed);
 
-    rearLeft.run(RELEASE);
-    rearRight.run(RELEASE);
-    stopMoving();
+    if (!carStopped)
+    {
+        if (movingForwards)
+        {
+            moveForward();
+        }
+        else
+        {
+            moveBackward();
+        }
+    }
+    else
+    {
+        stopMoving();
+    }
 }
 
 int measureDistance()
